@@ -73,20 +73,24 @@ class UpperBar(tk.Frame):
         self._render_frame(master)
 
     def _render_frame(self, master):
-        page1 = tk.Button(self, text='내 능력치 정보', font=tkf.Font(family="Maplestory", size=15), bg='white', command=lambda: master.switch_frame(MainPage))
-        page2 = tk.Button(self, text='장비 레벨 입력', font=tkf.Font(family="Maplestory", size=15), bg='white', command=lambda: master.switch_frame(WeaponPage))
-        page3 = tk.Button(self, text='정령 레벨 입력', font=tkf.Font(family="Maplestory", size=15), bg='white', command=lambda: master.switch_frame(SpiritPage))
-        page4 = tk.Button(self, text='패시브 입력', font=tkf.Font(family="Maplestory", size=15), bg='white', command=lambda: master.switch_frame(MainPage))
-        page5 = tk.Button(self, text='액티브 스킬 입력', font=tkf.Font(family="Maplestory", size=15), bg='white', command=lambda: master.switch_frame(MainPage))
-        page1.grid(row=0, column=0, padx=10, pady=5, sticky='nesw')
-        page2.grid(row=0, column=1, padx=10, pady=5, sticky='nesw')
-        page3.grid(row=0, column=2, padx=10, pady=5, sticky='nesw')
-        page4.grid(row=0, column=3, padx=10, pady=5, sticky='nesw')
-        page5.grid(row=0, column=4, padx=10, pady=5, sticky='nesw')
+        self.pages = {
+            '내 능력치 정보': [MainPage, None],
+            '능력치 입력': [MainPage, None],
+            '액티브/패시브 스킬 입력': [MainPage, None],
+            '장비 레벨 입력': [WeaponPage, None],
+            '정령 레벨 입력': [SpiritPage, None],
+            '펫, 펜던트, 코스튬 입력': [MainPage, None],
+            '제물, 컬렉션, 용알 입력': [MainPage, None],
+        }
+
+        for i, key in enumerate(self.pages.keys()):
+            self.pages[key][1] = tk.Button(self, text=key, font=tkf.Font(family="Maplestory", size=15), 
+                                bg='white', command=lambda key=key: master.switch_frame(self.pages[key][0]))
+            self.pages[key][1].grid(row=0, column=i, padx=5, pady=5, sticky='nesw')
         
         canvas = tk.Canvas(self, bg='white', bd=0, width=master.window_width, height=10, highlightthickness=0)
         canvas.create_line(1, 3, master.window_width-1, 3, width=2, fill='gray')
-        canvas.grid(row=1, column=0, columnspan=5)
+        canvas.grid(row=1, column=0, columnspan=len(self.pages))
 
 if __name__ == "__main__":
     app = MainApp()
