@@ -266,7 +266,34 @@ def calc_dragon_egg(userdata):
 
     return math.trunc(valid_egg/15), math.trunc(egg_limit/15)
 
-def calc_weapon_own_effect(userdata):
+def calc_all_weapon_own_effect(userdata):
+    result = {
+        '공격력': 0.0,
+        '마력': 0.0,
+        'HP 회복': 0.0,
+        '드랍률': 0.0,
+        'HP 증가': 0.0,
+        'MP 증가': 0.0,
+        '회피율': 0.0,
+        '치명타 데미지': 0.0,
+        '공격력 추가': 0.0,
+        '마력 추가': 0.0
+    }
+    for key in ['저급', '일반', '고급', '영웅', '전설', '신', '불멸']:
+        for i in range(4):
+            own_effect = calc_weapon_own_effect(key, i, userdata['장비'][key][i])
+            for effect in result.keys():
+                result[effect] += own_effect[effect]
+
+    result['공격력'] += result['공격력 추가']
+    result['마력'] += result['마력 추가']
+
+    del result['공격력 추가']
+    del result['마력 추가']
+
+    return result
+
+def calc_weapon_own_effect(rank, idx, level):
     base = {
         "저급": [10, 13, 17, 20],
         "일반": [70, 90, 110, 140],
@@ -276,30 +303,45 @@ def calc_weapon_own_effect(userdata):
         "신": [9000, 12000, 15000, 20000],
         "불멸": [68000, 238000, 807500, 4675000]
     }
+    constants = {
+        '저급': (0.33, 3),
+        '일반': (0.33, 2),
+        '고급': (0.33, 0),
+        '영웅': (0.33, 0),
+        '전설': (0.33, 0),
+        '신': (1, 0),
+        '불멸': (1, 0),
+    }
 
-    phys_n_magi = 0
-    for i in range(4):
-        phys_n_magi += round(base['저급'][i] * (userdata['장비']['저급'][i] ** 0.461) * 0.33, 3)
-        phys_n_magi += round(base['일반'][i] * (userdata['장비']['일반'][i] ** 0.461) * 0.33, 2)
-        for key in ['고급', '영웅', '전설']:
-            phys_n_magi += round(base[key][i] * (userdata['장비'][key][i] ** 0.461) * 0.33, 0)
-        for key in ['신', '불멸']:
-            phys_n_magi += round(base[key][i] * (userdata['장비'][key][i] ** 0.461), 0)
+    phys_n_magi = round(base[rank][idx] * (level ** 0.461) * constants[rank][0], constants[rank][1])
 
-    phys = phys_n_magi + \
-            round(base['신'][2] * (userdata['장비']['신'][2] ** 0.461) * 0.33, 3) + \
-            round(base['불멸'][2] * (userdata['장비']['불멸'][2] ** 0.461) * 0.388235294117647, 0)
-            
-    magi = phys_n_magi + \
-            round(base['신'][3] * (userdata['장비']['신'][3] ** 0.461) * 0.33, 3) + \
-            round(base['불멸'][3] * (userdata['장비']['불멸'][3] ** 0.461) * 0.388235294117647, 0)
-
-    hp_regen = 0.25 * userdata['장비']['전설'][3]
-    item_drop = min(userdata['장비']['신'][1], 100)
-    hp = userdata['장비']['전설'][0] * 10 + userdata['장비']['불멸'][0] * 15
-    mp = userdata['장비']['전설'][1] * 5
-    evade = min(userdata['장비']['전설'][2] * 0.1, 10) + min(userdata['장비']['신'][0] * 0.1, 10)
-    crit_dmg = userdata['장비']['불멸'][1] * 2.45
+    phys = phys_n_magi
+    magi = phys_n_magi
+    hp_regen, item_drop, hp, mp, evade, crit_dmg, phys2, magi2 = 0, 0, 0, 0, 0, 0, 0, 0
+    if rank == '전설' and idx == 0:
+        hp += level * 10
+    elif rank == '전설' and idx == 1:
+        mp += level * 5
+    elif rank == '전설' and idx == 2:
+        evade += min(level * 0.1, 10)
+    elif rank == '전설' and idx == 3:
+        hp_regen = 0.25 * level
+    elif rank == '신' and idx == 0:
+        evade += min(level * 0.1, 10)
+    elif rank == '신' and idx == 1:
+        item_drop = min(level, 100)
+    elif rank == '신' and idx == 2:
+        phys2 += round(base[rank][idx] * (level ** 0.461) * 0.33, 3)
+    elif rank == '신' and idx == 3:
+        magi2 += round(base[rank][idx] * (level ** 0.461) * 0.33, 3)
+    elif rank == '불멸' and idx == 0:
+        hp += level * 15
+    elif rank == '불멸' and idx == 1:
+        crit_dmg = level * 2.45
+    elif rank == '불멸' and idx == 2:
+        phys2 += round(base[rank][idx] * (level ** 0.461) * 0.388235294117647, 0)
+    elif rank == '불멸' and idx == 3:
+        magi2 += round(base[rank][idx] * (level ** 0.461) * 0.388235294117647, 0)
 
     return {
         '공격력': phys,
@@ -309,7 +351,9 @@ def calc_weapon_own_effect(userdata):
         'HP 증가': hp,
         'MP 증가': mp,
         '회피율': evade,
-        '치명타 데미지': crit_dmg
+        '치명타 데미지': crit_dmg,
+        '공격력 추가': phys2,
+        '마력 추가': magi2
     }
 
 def calc_spirit_own_effect(userdata):
@@ -504,6 +548,8 @@ def initial_load_data():
     return userdata
 
 def keep_seven_digits(num):
+    if num == 0:
+        return num
     power_of_ten = int(math.log10(num)) + 1 - 7
     num = num // (10 ** power_of_ten) * (10 ** power_of_ten)
 
@@ -549,11 +595,11 @@ def transform_korean_amount_string(num):
 
     return str_result 
 
-def transform_english_amount_string(num):
+def transform_english_amount_string(num, r=2):
     if num == '-':
         return '-'
     int_part = int(num)
-    float_part = round(num - int_part, 2)
+    float_part = round(num - int_part, r)
 
     list_num = list(str(int_part)) 
     list_num += list(str(float_part))[1:] if float_part != 0 else []

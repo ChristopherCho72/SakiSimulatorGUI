@@ -97,7 +97,7 @@ class MainPage(tk.Frame):
         self.pet_option = calc_pet(userdata)
         self.egg_option, max_egg_option = calc_dragon_egg(userdata)
         self.offering_option = calc_offering(userdata)
-        self.weapon_own = calc_weapon_own_effect(userdata)
+        self.weapon_own = calc_all_weapon_own_effect(userdata)
         self.weapon_mount = get_weapon_effect(userdata)
         self.spirit_own = calc_spirit_own_effect(userdata)
         self.spirit_mount = get_spirit_effect(userdata)
