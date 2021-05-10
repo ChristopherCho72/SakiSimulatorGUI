@@ -99,7 +99,7 @@ class MainPage(tk.Frame):
         self.offering_option = calc_offering(userdata)
         self.weapon_own = calc_all_weapon_own_effect(userdata)
         self.weapon_mount = get_weapon_effect(userdata)
-        self.spirit_own = calc_spirit_own_effect(userdata)
+        self.spirit_own = calc_all_spirit_own_effect(userdata)
         self.spirit_mount = get_spirit_effect(userdata)
 
         level = userdata['레벨']
@@ -123,3 +123,6 @@ class MainPage(tk.Frame):
                 self.status[key].set(transform_english_amount_string(keep_seven_digits(status[key])))
             else:
                 self.status[key].set(transform_english_amount_string(status[key]))
+
+    def update_userdata(self):
+        pass

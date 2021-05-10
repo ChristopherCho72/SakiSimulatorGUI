@@ -62,6 +62,7 @@ class MainApp(tk.Tk):
     def switch_frame(self, frame_class):
         new_frame = frame_class(self)
         if self.main_frame is not None:
+            self.main_frame.update_userdata()
             self.main_frame.destroy()
         self.main_frame = new_frame
         self.main_frame.grid(row=1, column=0)

@@ -24,13 +24,24 @@ class WeaponPage(tk.Frame):
         '신': ['회피율', '드랍률', '공격력 추가', '마력 추가'],
         '불멸': ['HP 증가', '치명타 데미지', '공격력 추가', '마력 추가']
     }
+    STAT_KEYS = {
+        '물공 보유효과': '공격력',
+        '마공 보유효과': '마력',
+        '자연회복률': 'HP 회복',
+        '아이템 드랍률': '드랍률',
+        'HP 증가': 'HP 증가',
+        'MP 증가': 'MP 증가',
+        '회피율 증가': '회피율',
+        '치명타 데미지': '치명타 데미지'
+    }
     def __init__(self, master):
         super().__init__(bg='white')
 
+        self.master = master
         self.img_size = (90, 90)
+
         self._initialize_variables(master)
         self.update_data(master.userdata)
-        self.master = master
 
         self._render_frame()
 
@@ -123,7 +134,13 @@ class WeaponPage(tk.Frame):
                 strvar.set('-')
                 self.own_efficiency[key].append(strvar)
 
-    def _update_userdata(self):
+        self.own_stats = {}
+        for key in WeaponPage.STAT_KEYS.keys():
+            strvar = tk.StringVar()
+            strvar.set('-')
+            self.own_stats[key] = strvar
+
+    def update_userdata(self):
         for key in WeaponPage.GRID_POS.keys():
             for i in range(4):
                 input_level = self.levels[key][i].get()
@@ -142,6 +159,7 @@ class WeaponPage(tk.Frame):
         self._render_own_effect()
         self._render_upgrade_efficiency()
         self._render_side_effect()
+        self._render_whole_own_effect()
 
     def _render_context(self):
         label_texts = ['레벨 (미 보유시 0)', '현재 필요한 업스톤', '풀업글 시 필요 업스톤', '현재 장착효과', '현재 보유효과', '개당 업스톤 업그레이드 효율']
@@ -244,15 +262,25 @@ class WeaponPage(tk.Frame):
                 img = self.imgs[key][i]
                 label = tk.Label(self, bg='white', image=img)
                 r_offset, c_offset = WeaponPage.GRID_POS[key]
-                label.grid(row=r_offset, column=c_offset + i)
+                label.grid(row=r_offset, column=c_offset + i, padx=3)
 
         for i in [7, 17]:
             label = tk.Label(self, bg='white', text='')
-            label.grid(row=i, column=0, columnspan=13, pady=3)
+            label.grid(row=i, column=0, pady=3)
 
         for i in [5, 10]:
             label = tk.Label(self, bg='white', text='')
-            label.grid(row=0, column=i, rowspan=7, padx=3)
+            label.grid(row=0, column=i, padx=3)
+
+    def _render_whole_own_effect(self):
+        label0 = tk.Label(self, text='장비 보유효과', font=tkf.Font(family="Maplestory", size=10), bg='white', fg="#202020")
+        label0.grid(row=21, column=12, columnspan=2)
+        for idx, key in enumerate(WeaponPage.STAT_KEYS.keys()):
+            label1 = tk.Label(self, text=key, font=tkf.Font(family="Maplestory", size=10), bg='white', fg="#202020")
+            label1.grid(row=22+idx, column=12, sticky='e')
+
+            label2 = tk.Label(self, textvariable=self.own_stats[key], font=tkf.Font(family="Maplestory", size=10), bg='white', fg="#202020")
+            label2.grid(row=22+idx, column=13, sticky='e')
 
     def _validate_level(self, action, index, value_if_allowed,
                     prior_value, text, validation_type, trigger_type, widget_name):
@@ -356,8 +384,18 @@ class WeaponPage(tk.Frame):
                             r=4
                         ) + '%'
                     )
+                
+        self.update_userdata()
 
-        self._update_userdata()
+        all_own_effect = calc_all_weapon_own_effect(self.master.userdata)
+        for key in WeaponPage.STAT_KEYS.keys():
+            self.own_stats[key].set(
+                transform_english_amount_string(
+                            all_own_effect[WeaponPage.STAT_KEYS[key]],
+                            r=0
+                        ) + '%'
+            )
+
 
     def update_data(self, userdata):
         for key in WeaponPage.GRID_POS.keys():
@@ -365,10 +403,3 @@ class WeaponPage(tk.Frame):
                 self.levels[key][i].set(userdata['장비'][key][i])
 
         self._calculate_variables()
-
-
-
-    
-
-
-        

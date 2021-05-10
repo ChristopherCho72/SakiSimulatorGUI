@@ -1,8 +1,29 @@
 import math
 import json
 import os
+import csv
 
 from userdata_template import template
+
+def make_spirit_upstone_dict():
+    r = csv.reader(open('data/spirit.csv', encoding='utf-8'))
+    d = {
+        '일반': dict(),
+        '고급': dict(),
+        '영웅': dict(),
+        '전설': dict()
+    }
+    for l in r:
+        level, normal, high, hero, legend = l
+        level, normal, high, hero, legend = int(level), int(normal), int(high), int(hero), int(legend)
+        d['일반'][level] = normal
+        d['고급'][level] = high
+        d['영웅'][level] = hero
+        d['전설'][level] = legend
+
+    return d
+
+spirit_upstone = make_spirit_upstone_dict()
 
 def calc_phys_atk(userdata, costume_option, pet_option, egg_option,
                   weapon_own, weapon_mount, spirit_own, spirit_mount):
@@ -356,7 +377,24 @@ def calc_weapon_own_effect(rank, idx, level):
         '마력 추가': magi2
     }
 
-def calc_spirit_own_effect(userdata):
+def calc_all_spirit_own_effect(userdata):
+    result = {
+        '공격력': 0.0,
+        '마력': 0.0,
+        'HP 증가': 0.0,
+        '치명타 데미지': 0.0,
+        '치명타 데미지 곱': 0.0
+    }
+
+    for rank in ['일반', '고급', '영웅', '전설']:
+        for i in range(4):
+            spirit_effect = calc_spirit_own_effect(rank, i, userdata['정령'][rank][i])
+            for key in spirit_effect.keys():
+                result[key] += spirit_effect[key]
+
+    return result
+
+def calc_spirit_own_effect(rank, idx, level):
     base = {
         '일반': 2.5,
         '일반_치명': 5,
@@ -369,15 +407,14 @@ def calc_spirit_own_effect(userdata):
     }
     base_crit_mult = [(2.5, 0.05), (5, 0.1), (10, 0.2), (20, 0.3)]
 
-    hp, phys, magi, crit_dmg = 0, 0, 0, 0
-    for key in ['일반', '고급', '영웅', '전설']:
-        hp += base[key] + userdata['정령'][key][0] * base[key] * 0.01 if userdata['정령'][key][0] >= 0 else 0
-        phys += base[key] + userdata['정령'][key][1] * base[key] * 0.01 if userdata['정령'][key][1] >= 0 else 0
-        magi += base[key] + userdata['정령'][key][2] * base[key] * 0.01 if userdata['정령'][key][2] >= 0 else 0
-        crit_dmg += base[key + '_치명'] + userdata['정령'][key][3] * base[key + '_치명'] * 0.01 if userdata['정령'][key][3] >= 0 else 0
+    hp, phys, magi, crit_dmg, crit_dmg_mult = 0, 0, 0, 0, 0
+    hp += base[rank] + level * base[rank] * 0.01 if level >= 0 else 0
+    phys += base[rank] + level * base[rank] * 0.01 if level >= 0 else 0
+    magi += base[rank] + level * base[rank] * 0.01 if level >= 0 else 0
+    crit_dmg += base[rank + '_치명'] + level * base[rank + '_치명'] * 0.01 if level >= 0 else 0
 
-    for i in range(4):
-        crit_dmg_mult = base_crit_mult[i][0] + userdata['정령']['전설'][i] * base_crit_mult[i][1]
+    if rank == '전설':
+        crit_dmg_mult = base_crit_mult[idx][0] + level * base_crit_mult[idx][1] if level >= 0 else 0
 
     return {
         '공격력': phys,
@@ -419,6 +456,22 @@ def calc_needed_upstone(rank, idx, level):
     adder = immortal_adder[idx] if rank == '불멸' else 0
 
     return int(base[rank] * (level ** 1.5)) + adder
+
+def calc_spirit_full_needed_upstone(rank, level):
+    if level == -1:
+        return '-'
+
+    req_ups = 0
+    for i in range(level, 201):
+        req_ups += calc_spirit_needed_upstone(rank, i)
+
+    return req_ups
+
+def calc_spirit_needed_upstone(rank, level):
+    if level == -1:
+        return '-'
+        
+    return spirit_upstone[rank][level]
 
 def calc_full_needed_upstone(rank, idx, level):
     if level == 0:
@@ -507,20 +560,20 @@ def calc_spirit_effect(rank, idx, level):
     hp, phys, magi, crit_dmg = 0, 0, 0, 0
     if idx == 0:
         hp = base[rank][0] + \
-                level * base[rank][1]
+                level * base[rank][1] if level >= 0 else 0
     elif idx == 1:
         phys = base[rank][0] + \
-                level * base[rank][1]
+                level * base[rank][1] if level >= 0 else 0
     elif idx == 2:
         magi = base[rank][0] + \
-                level * base[rank][1]
+                level * base[rank][1] if level >= 0 else 0
     elif idx == 3:
         phys = base[rank][0] + \
-                level * base[rank][1]
+                level * base[rank][1] if level >= 0 else 0
         magi = base[rank][0] + \
-                level * base[rank][1]
+                level * base[rank][1] if level >= 0 else 0
         crit_dmg = base[rank + '_치명'][0] + \
-                level * base[rank + '_치명'][1]
+                level * base[rank + '_치명'][1] if level >= 0 else 0
 
     return {
         '공격력': phys,
@@ -600,14 +653,14 @@ def transform_english_amount_string(num, r=2):
         return '-'
     int_part = int(num)
     float_part = round(num - int_part, r)
+    is_float = float_part != 0 and r != 0
 
     list_num = list(str(int_part)) 
-    list_num += list(str(float_part))[1:] if float_part != 0 else []
+    list_num += list(str(float_part))[1:] if is_float else []
     list_num.reverse()
 
     result = ''
-    is_float = float_part != 0
-    int_start = False
+    int_start = not is_float
     int_idx = 0
     for i in range(len(list_num)):
         if list_num[i] == '.':

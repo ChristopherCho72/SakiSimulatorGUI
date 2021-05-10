@@ -13,6 +13,18 @@ class SpiritPage(tk.Frame):
         '영웅': (7, 1),
         '전설': (7, 6),
     }
+    HAVE_MOUNT_2_EFFECT = {
+        '영웅': [3],
+        '전설': [3]
+    }
+    SPIRIT_EFFECT = ['HP 증가', '공격력', '마력', '치명타 데미지']
+    STAT_KEYS = {
+        '체력 증가율': 'HP 증가',
+        '물공 증가': '공격력',
+        '마공 증가': '마력',
+        '치명타 데미지': '치명타 데미지',
+        '최종 치뎀 증가(*)': '치명타 데미지 곱'
+    }
 
     def __init__(self, master):
         super().__init__(bg='white')
@@ -40,11 +52,70 @@ class SpiritPage(tk.Frame):
                 strvar = tk.StringVar()
                 strvar.set('')
                 self.levels[key].append(strvar)
+            
+        self.req_ups = {}
+        for key in SpiritPage.GRID_POS.keys():
+            self.req_ups[key] = []
+            for i in range(4):
+                strvar = tk.StringVar()
+                strvar.set('-')
+                self.req_ups[key].append(strvar)
+
+        self.full_req_ups = {}
+        for key in SpiritPage.GRID_POS.keys():
+            self.full_req_ups[key] = []
+            for i in range(4):
+                strvar = tk.StringVar()
+                strvar.set('-')
+                self.full_req_ups[key].append(strvar)
+
+        self.mount_effect = {}
+        for key in SpiritPage.GRID_POS.keys():
+            self.mount_effect[key] = []
+            for i in range(4):
+                strvar = tk.StringVar()
+                strvar.set('-')
+                self.mount_effect[key].append(strvar)
+
+        self.mount_spirit_1_effect = {}
+        for key in SpiritPage.GRID_POS.keys():
+            self.mount_spirit_1_effect[key] = []
+            for i in range(4):
+                strvar = tk.StringVar()
+                strvar.set('-')
+                self.mount_spirit_1_effect[key].append(strvar)
+
+        self.own_effect = {}
+        for key in SpiritPage.GRID_POS.keys():
+            self.own_effect[key] = []
+            for i in range(4):
+                strvar = tk.StringVar()
+                strvar.set('-')
+                self.own_effect[key].append(strvar)
+
+        self.own_crit_effect = {}
+        for key in SpiritPage.GRID_POS.keys():
+            self.own_crit_effect[key] = []
+            for i in range(4):
+                strvar = tk.StringVar()
+                strvar.set('-')
+                self.own_crit_effect[key].append(strvar)
+
+        self.own_stats = {}
+        for key in SpiritPage.STAT_KEYS.keys():
+            strvar = tk.StringVar()
+            strvar.set('-')
+            self.own_stats[key] = strvar
 
     def _render_frame(self):
         self._render_image()
         self._render_context()
         self._render_level_slot()
+        self._render_needed_upstone()
+        self._render_mount_effect()
+        self._render_own_effect()
+        self._render_own_crit_effect()
+        self._render_whole_own_effect()
 
     def _render_image(self):
         for key in SpiritPage.GRID_POS.keys():
@@ -59,6 +130,9 @@ class SpiritPage(tk.Frame):
 
         label = tk.Label(self, bg='white', text='')
         label.grid(row=0, column=5, rowspan=6, padx=3)
+
+        label = tk.Label(self, bg='white', text='')
+        label.grid(row=0, column=10, rowspan=6, padx=3)
 
     def _render_context(self):
         label_texts = ['레벨 (미 보유시 -1)', '현재 필요한 업스톤&전리품', '풀업글 시 필요 재료', '현재 장착효과(체/공/마/치)', '현재 보유효과(체/공/마/치)']
@@ -82,11 +156,138 @@ class SpiritPage(tk.Frame):
                 r_offset, c_offset = SpiritPage.GRID_POS[key]
                 entry.grid(row=r_offset+1, column=c_offset + i, sticky='we')
 
+    def _render_needed_upstone(self):
+        for key in SpiritPage.GRID_POS.keys():
+            for i in range(4):
+                label = tk.Label(self, textvariable=self.req_ups[key][i], font=tkf.Font(family="Maplestory", size=10), bg='white', fg="#202020")
+                r_offset, c_offset = SpiritPage.GRID_POS[key]
+                label.grid(row=r_offset+2, column=c_offset + i, sticky='e')
+
+        for key in SpiritPage.GRID_POS.keys():
+            for i in range(4):
+                label = tk.Label(self, textvariable=self.full_req_ups[key][i], font=tkf.Font(family="Maplestory", size=10), bg='white', fg="#202020")
+                r_offset, c_offset = SpiritPage.GRID_POS[key]
+                label.grid(row=r_offset+3, column=c_offset + i, sticky='e')
+
+    def _render_mount_effect(self):
+        for key in SpiritPage.GRID_POS.keys():
+            for i in range(4):
+                label = tk.Label(self, textvariable=self.mount_effect[key][i], font=tkf.Font(family="Maplestory", size=10), bg='white', fg="#202020")
+                r_offset, c_offset = SpiritPage.GRID_POS[key]
+                label.grid(row=r_offset+4, column=c_offset + i, sticky='e')
+                
+                label = tk.Label(self, textvariable=self.mount_spirit_1_effect[key][i], font=tkf.Font(family="Maplestory", size=10), bg='white', fg="#202020")
+                r_offset, c_offset = SpiritPage.GRID_POS[key]
+                label.grid(row=r_offset+5, column=c_offset + i, sticky='e')
+
+        # for key in SpiritPage.HAVE_MOUNT_2_EFFECT.keys():
+        #     for i in SpiritPage.HAVE_MOUNT_2_EFFECT[key]:
+        #         label = tk.Label(self, textvariable=self.mount_spirit_1_effect[key][i], font=tkf.Font(family="Maplestory", size=10), bg='white', fg="#202020")
+        #         r_offset, c_offset = SpiritPage.GRID_POS[key]
+        #         label.grid(row=r_offset+5, column=c_offset + i, sticky='e')
+
+    def _render_own_effect(self):
+        for key in SpiritPage.GRID_POS.keys():
+            for i in range(4):
+                label = tk.Label(self, textvariable=self.own_effect[key][i], font=tkf.Font(family="Maplestory", size=10), bg='white', fg="#202020")
+                r_offset, c_offset = SpiritPage.GRID_POS[key]
+                if key in ['일반', '고급']:
+                    r_adder = 5
+                else:
+                    r_adder = 6
+                label.grid(row=r_offset + r_adder, column=c_offset + i, sticky='e')
+
+    def _render_own_crit_effect(self):
+        for key in SpiritPage.HAVE_MOUNT_2_EFFECT.keys():
+            for i in range(4):
+                label = tk.Label(self, textvariable=self.own_crit_effect[key][i], font=tkf.Font(family="Maplestory", size=10), bg='white', fg="#202020")
+                r_offset, c_offset = SpiritPage.GRID_POS[key]
+                r_adder = 7
+                label.grid(row=r_offset + r_adder, column=c_offset + i, sticky='e')
+
+    def _render_whole_own_effect(self):
+        label0 = tk.Label(self, text='정령 보유효과', font=tkf.Font(family="Maplestory", size=10), bg='white', fg="#202020")
+        label0.grid(row=8, column=12, columnspan=2, ipadx=100)
+        for idx, key in enumerate(SpiritPage.STAT_KEYS.keys()):
+            label1 = tk.Label(self, text=key, font=tkf.Font(family="Maplestory", size=10), bg='white', fg="#202020")
+            label1.grid(row=9+idx, column=12, sticky='e')
+
+            label2 = tk.Label(self, textvariable=self.own_stats[key], font=tkf.Font(family="Maplestory", size=10), bg='white', fg="#202020")
+            label2.grid(row=9+idx, column=13, sticky='e')
+
+
     def update_data(self, userdata):
-        pass
+        for key in SpiritPage.GRID_POS.keys():
+            for i in range(4):
+                self.levels[key][i].set(userdata['정령'][key][i])
+
+        self._calculate_variables()
+
+    def update_userdata(self):
+        for key in SpiritPage.GRID_POS.keys():
+            for i in range(4):
+                input_level = self.levels[key][i].get()
+                try:
+                    level = int(input_level)
+                    self.master.userdata['정령'][key][i] = level
+                except:
+                    self.master.userdata['정령'][key][i] = 0
 
     def _calculate_variables(self, event=None):
-        pass
+        for key in SpiritPage.GRID_POS.keys():
+            for i in range(4):
+                level = self.levels[key][i].get()
+                level = int(level) if level else -1
+                self.req_ups[key][i].set(
+                    transform_english_amount_string(
+                        calc_spirit_needed_upstone(key, level)
+                    )
+                )
+                self.full_req_ups[key][i].set(
+                    transform_english_amount_string(
+                        calc_spirit_full_needed_upstone(key, level)
+                    )
+                )
+                
+                spirit_effect = calc_spirit_effect(key, i, level)
+                self.mount_effect[key][i].set(
+                    transform_english_amount_string(
+                        spirit_effect[SpiritPage.SPIRIT_EFFECT[i]]
+                    ) + '%'
+                )
+
+                if key in SpiritPage.HAVE_MOUNT_2_EFFECT.keys():
+                    if i in SpiritPage.HAVE_MOUNT_2_EFFECT[key]:
+                        self.mount_spirit_1_effect[key][i].set(
+                            transform_english_amount_string(
+                                spirit_effect['공격력']
+                            ) + '%'
+                        )
+
+                own_effect = calc_spirit_own_effect(key, i, level)
+                self.own_effect[key][i].set(
+                    transform_english_amount_string(
+                        own_effect[SpiritPage.SPIRIT_EFFECT[i]]
+                    ) + '%'
+                )
+                
+                if key in ['전설']:
+                    self.own_crit_effect[key][i].set(
+                        transform_english_amount_string(
+                            own_effect['치명타 데미지 곱']
+                        ) + '%'
+                    )
+
+        self.update_userdata()
+
+        all_own_effect = calc_all_spirit_own_effect(self.master.userdata)
+        for key in SpiritPage.STAT_KEYS.keys():
+            self.own_stats[key].set(
+                transform_english_amount_string(
+                            all_own_effect[SpiritPage.STAT_KEYS[key]],
+                            r=2
+                        ) + '%'
+            )
 
     
     def _validate_level(self, action, index, value_if_allowed,
