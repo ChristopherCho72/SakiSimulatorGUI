@@ -1,6 +1,5 @@
 import tkinter as tk
 import tkinter.font as tkf
-import PIL
 import re
 
 from PIL import ImageTk, Image
@@ -41,7 +40,7 @@ class SpiritPage(tk.Frame):
         for key in SpiritPage.GRID_POS.keys():
             self.imgs[key] = []
             for i in reversed(range(1, 5)):
-                img = PIL.Image.open('data/img/spirit/%s%d.png'%(key, i)).resize(self.img_size, PIL.Image.ANTIALIAS)
+                img = Image.open('data/img/spirit/%s%d.png'%(key, i)).resize(self.img_size, Image.ANTIALIAS)
                 photo = ImageTk.PhotoImage(img)
                 self.imgs[key].append(photo)
 
