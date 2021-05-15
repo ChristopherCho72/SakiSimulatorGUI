@@ -33,14 +33,14 @@ class WeaponPage(tk.Frame):
         '회피율 증가': '회피율',
         '치명타 데미지': '치명타 데미지'
     }
-    def __init__(self, master):
-        super().__init__(bg='white')
+    def __init__(self, master, main_frame):
+        super().__init__(master, bg='white')
 
-        self.master = master
+        self.main_frame = main_frame
         self.img_size = (90, 90)
 
-        self._initialize_variables(master)
-        self.update_data(master.userdata)
+        self._initialize_variables(main_frame)
+        self.update_data(main_frame.userdata)
 
         self._render_frame()
 
@@ -138,6 +138,11 @@ class WeaponPage(tk.Frame):
             strvar = tk.StringVar()
             strvar.set('-')
             self.own_stats[key] = strvar
+    
+        self.mount = {
+            'weapon': None,
+            'label': None
+        }
 
     def update_userdata(self):
         for key in WeaponPage.GRID_POS.keys():
@@ -145,9 +150,11 @@ class WeaponPage(tk.Frame):
                 input_level = self.levels[key][i].get()
                 try:
                     level = int(input_level)
-                    self.master.userdata['장비'][key][i] = level
+                    self.main_frame.userdata['장비'][key][i] = level
                 except:
-                    self.master.userdata['장비'][key][i] = 0
+                    self.main_frame.userdata['장비'][key][i] = 0
+
+        self.main_frame.userdata['장착 무기'] = self.mount['weapon']
 
     def _render_frame(self):
         self._render_context()
@@ -256,12 +263,29 @@ class WeaponPage(tk.Frame):
                 label.grid(row=r_offset + r_adder, column=c_offset + i, sticky='e')
 
     def _render_image(self):
+        def OnClick(key, i):
+            label = tk.Label(self, bg='white', text='장착 중')
+            r_offset, c_offset = WeaponPage.GRID_POS[key]
+            label.grid(row=r_offset, column=c_offset + i, padx=3, sticky='we')
+            if self.mount['label'] is not None:
+                self.mount['label'].destroy()
+            self.mount['label'] = label
+            self.mount['weapon'] = [key, i]
+
         for key in WeaponPage.GRID_POS.keys():
             for i in range(4):
                 img = self.imgs[key][i]
-                label = tk.Label(self, bg='white', image=img)
+                label = tk.Button(self, bg='white', image=img, command=lambda i=i, key=key: OnClick(key, i))
                 r_offset, c_offset = WeaponPage.GRID_POS[key]
                 label.grid(row=r_offset, column=c_offset + i, padx=3)
+
+        key, i = self.mount['weapon']
+        label = tk.Label(self, bg='white', text='장착 중')
+        r_offset, c_offset = WeaponPage.GRID_POS[key]
+        label.grid(row=r_offset, column=c_offset + i, padx=3, sticky='we')
+        if self.mount['label'] is not None:
+            self.mount['label'].destroy()
+        self.mount['label'] = label
 
         for i in [7, 17]:
             label = tk.Label(self, bg='white', text='')
@@ -386,7 +410,7 @@ class WeaponPage(tk.Frame):
                 
         self.update_userdata()
 
-        all_own_effect = calc_all_weapon_own_effect(self.master.userdata)
+        all_own_effect = calc_all_weapon_own_effect(self.main_frame.userdata)
         for key in WeaponPage.STAT_KEYS.keys():
             self.own_stats[key].set(
                 transform_english_amount_string(
@@ -400,5 +424,7 @@ class WeaponPage(tk.Frame):
         for key in WeaponPage.GRID_POS.keys():
             for i in range(4):
                 self.levels[key][i].set(userdata['장비'][key][i])
+
+        self.mount['weapon'] = userdata['장착 무기']
 
         self._calculate_variables()

@@ -4,11 +4,34 @@ import tkinter.font as tkf
 from utils import *
 
 class MainPage(tk.Frame):
-    def __init__(self, master):
-        super().__init__(bg='white')
+    def __init__(self, master, main_frame):
+        super().__init__(master, bg='white')
 
+        self.left_page = StatPage(self, main_frame)
+        self.left_page.grid(row=0, column=0, sticky='n')
+
+        label = tk.Label(self, text='', font=tkf.Font(family="Maplestory", size=20), bg='white', fg="#202020")
+        label.grid(row=0, column=1, padx=5, sticky='we')
+
+        self.right_page = HuntPage(self, main_frame)
+        self.right_page.grid(row=0, column=2, sticky='n')
+
+    def update_userdata(self):
+        self.left_page.update_userdata()
+        self.right_page.update_userdata()
+
+    def update_data(self, userdata):
+        self.left_page.update_data(userdata)
+        self.right_page.update_data(userdata)
+
+
+class StatPage(tk.Frame):
+    def __init__(self, master, main_frame):
+        super().__init__(master, bg='white')
+
+        self.main_frame = main_frame
         self._initialize_variables()
-        self._calculate_variables(master.userdata)
+        self._calculate_variables(main_frame.userdata)
 
         self._render_frame()
 
@@ -41,9 +64,17 @@ class MainPage(tk.Frame):
         row_idx = 0
 
         level = tk.Label(self, text='레벨', font=tkf.Font(family="Maplestory", size=20), bg='white', fg="#202020")
-        level_num = tk.Label(self, textvariable=self.status['레벨'], font=tkf.Font(family="Maplestory", size=20), bg='white', fg="#FF843A")
         level.grid(row=row_idx, column=0, sticky='w', padx=10, pady=3)
-        level_num.grid(row=row_idx, column=1, columnspan=2, sticky='e', padx=10, pady=3)
+
+        level_num = tk.Label(self, text='Lv. ', font=tkf.Font(family="Maplestory", size=20), bg='white', fg="#FF843A")
+        level_num.grid(row=row_idx, column=1, sticky='e', padx=10, pady=3)
+
+        entry = tk.Entry(self, width=5, textvariable=self.status['레벨'], font=tkf.Font(family="Maplestory", size=22),
+                        justify='center', fg='#FF843A')
+        entry.bind('<Return>', self.update_userdata)
+        entry.bind('<FocusOut>', self.update_userdata)
+        entry.grid(row=row_idx, column=2, padx=3, sticky='e')
+
         row_idx += 1
 
         for key in ['총 전투력', '물공 전투력', '마공 전투력']:
@@ -90,6 +121,8 @@ class MainPage(tk.Frame):
             row_idx += 1
 
     def update_data(self, userdata):
+        self.status['레벨'].set(userdata['레벨'])
+
         self._calculate_variables(userdata)
 
     def _calculate_variables(self, userdata):
@@ -106,7 +139,7 @@ class MainPage(tk.Frame):
         status = calc_status(userdata, self.costume_option, self.pet_option, self.egg_option, self.offering_option,
                         self.weapon_own, self.weapon_mount, self.spirit_own, self.spirit_mount)
 
-        self.status['레벨'].set("Lv " + str(level))
+        self.status['레벨'].set(str(level))
         self.status['총 전투력'].set(transform_korean_amount_string(keep_seven_digits(status['총 전투력'])))
         self.status['물공 전투력'].set(transform_korean_amount_string(keep_seven_digits(status['물공 전투력'])))
         self.status['마공 전투력'].set(transform_korean_amount_string(keep_seven_digits(status['마공 전투력'])))
@@ -124,5 +157,37 @@ class MainPage(tk.Frame):
             else:
                 self.status[key].set(transform_english_amount_string(status[key]))
 
+        self.update_userdata()
+
+    def update_userdata(self, event=None):
+        input_level = self.status['레벨'].get()
+        try:
+            level = int(input_level)
+            self.main_frame.userdata['레벨'] = level
+        except:
+            self.main_frame.userdata['레벨'] = 0
+
+
+class HuntPage(tk.Frame):
+    def __init__(self, master, main_frame):
+        super().__init__(master, bg='white')
+
+        self.main_frame = main_frame
+        self.img_size = (90, 90)
+
+        self._initialize_variables(main_frame)
+        self.update_data(main_frame.userdata)
+
+        self._render_frame()
+
+    def _initialize_variables(self, master):
+        pass
+
+    def update_data(self, userdata):
+        pass
+
     def update_userdata(self):
+        pass
+
+    def _render_frame(self):
         pass

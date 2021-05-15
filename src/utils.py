@@ -408,10 +408,14 @@ def calc_spirit_own_effect(rank, idx, level):
     base_crit_mult = [(2.5, 0.05), (5, 0.1), (10, 0.2), (20, 0.3)]
 
     hp, phys, magi, crit_dmg, crit_dmg_mult = 0, 0, 0, 0, 0
-    hp += base[rank] + level * base[rank] * 0.01 if level >= 0 else 0
-    phys += base[rank] + level * base[rank] * 0.01 if level >= 0 else 0
-    magi += base[rank] + level * base[rank] * 0.01 if level >= 0 else 0
-    crit_dmg += base[rank + '_치명'] + level * base[rank + '_치명'] * 0.01 if level >= 0 else 0
+    if idx == 0:
+        hp += base[rank] + level * base[rank] * 0.01 if level >= 0 else 0
+    if idx == 1:
+        phys += base[rank] + level * base[rank] * 0.01 if level >= 0 else 0
+    if idx == 2:
+        magi += base[rank] + level * base[rank] * 0.01 if level >= 0 else 0
+    if idx == 3:
+        crit_dmg += base[rank + '_치명'] + level * base[rank + '_치명'] * 0.01 if level >= 0 else 0
 
     if rank == '전설':
         crit_dmg_mult = base_crit_mult[idx][0] + level * base_crit_mult[idx][1] if level >= 0 else 0
@@ -629,7 +633,7 @@ def transform_korean_amount_string(num):
 
         if str_num == '0': 
             if i % 4 == 0: 
-                str_result = units[i] + str_result 
+                str_result = str_num + units[i] + str_result 
             else:
                 all_zero = True
                 for j in range(i, (i // 4) * 4 + 4):

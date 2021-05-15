@@ -25,13 +25,13 @@ class SpiritPage(tk.Frame):
         '최종 치뎀 증가(*)': '치명타 데미지 곱'
     }
 
-    def __init__(self, master):
+    def __init__(self, master, main_frame):
         super().__init__(bg='white')
 
+        self.main_frame = main_frame
         self.img_size = (90, 90)
-        self._initialize_variables(master)
-        self.update_data(master.userdata)
-        self.master = master
+        self._initialize_variables(main_frame)
+        self.update_data(main_frame.userdata)
 
         self._render_frame()
 
@@ -106,6 +106,11 @@ class SpiritPage(tk.Frame):
             strvar.set('-')
             self.own_stats[key] = strvar
 
+        self.mount = {
+            'spirit': None,
+            'label': None
+        }
+
     def _render_frame(self):
         self._render_image()
         self._render_context()
@@ -117,12 +122,29 @@ class SpiritPage(tk.Frame):
         self._render_whole_own_effect()
 
     def _render_image(self):
+        def OnClick(key, i):
+            label = tk.Label(self, bg='white', text='장착 중')
+            r_offset, c_offset = SpiritPage.GRID_POS[key]
+            label.grid(row=r_offset, column=c_offset + i, padx=3, sticky='we')
+            if self.mount['label'] is not None:
+                self.mount['label'].destroy()
+            self.mount['label'] = label
+            self.mount['spirit'] = [key, i]
+
         for key in SpiritPage.GRID_POS.keys():
             for i in range(4):
                 img = self.imgs[key][i]
-                label = tk.Label(self, bg='white', image=img)
+                label = tk.Button(self, bg='white', image=img, command=lambda i=i, key=key: OnClick(key, i))
                 r_offset, c_offset = SpiritPage.GRID_POS[key]
                 label.grid(row=r_offset, column=c_offset + i)
+
+        key, i = self.mount['spirit']
+        label = tk.Label(self, bg='white', text='장착 중')
+        r_offset, c_offset = SpiritPage.GRID_POS[key]
+        label.grid(row=r_offset, column=c_offset + i, padx=3, sticky='we')
+        if self.mount['label'] is not None:
+            self.mount['label'].destroy()
+        self.mount['label'] = label
 
         label = tk.Label(self, bg='white', text='')
         label.grid(row=6, column=0, columnspan=10, pady=3)
@@ -219,6 +241,8 @@ class SpiritPage(tk.Frame):
         for key in SpiritPage.GRID_POS.keys():
             for i in range(4):
                 self.levels[key][i].set(userdata['정령'][key][i])
+        
+        self.mount['spirit'] = userdata['장착 정령']
 
         self._calculate_variables()
 
@@ -228,9 +252,11 @@ class SpiritPage(tk.Frame):
                 input_level = self.levels[key][i].get()
                 try:
                     level = int(input_level)
-                    self.master.userdata['정령'][key][i] = level
+                    self.main_frame.userdata['정령'][key][i] = level
                 except:
-                    self.master.userdata['정령'][key][i] = 0
+                    self.main_frame.userdata['정령'][key][i] = 0
+
+        self.main_frame.userdata['장착 정령'] = self.mount['spirit']
 
     def _calculate_variables(self, event=None):
         for key in SpiritPage.GRID_POS.keys():
@@ -279,7 +305,7 @@ class SpiritPage(tk.Frame):
 
         self.update_userdata()
 
-        all_own_effect = calc_all_spirit_own_effect(self.master.userdata)
+        all_own_effect = calc_all_spirit_own_effect(self.main_frame.userdata)
         for key in SpiritPage.STAT_KEYS.keys():
             self.own_stats[key].set(
                 transform_english_amount_string(
