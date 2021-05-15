@@ -3,7 +3,7 @@ import tkinter.font as tkf
 import re
 
 from PIL import ImageTk, Image
-from utils import *
+from src.utils import *
 
 
 class AccePage(tk.Frame):

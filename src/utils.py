@@ -3,7 +3,7 @@ import json
 import os
 import csv
 
-from userdata_template import template
+from src.userdata_template import template
 
 def make_spirit_upstone_dict():
     r = csv.reader(open('data/spirit.csv', encoding='utf-8'))

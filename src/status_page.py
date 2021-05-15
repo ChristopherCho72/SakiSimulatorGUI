@@ -3,7 +3,7 @@ import tkinter.font as tkf
 import re
 
 from PIL import ImageTk, Image
-from utils import *
+from src.utils import *
 
 class StatusPage(tk.Frame):
     STAT_LIST = [('공격력', '공격력', '공격력 증가'),

@@ -1,7 +1,7 @@
 import tkinter as tk
 import tkinter.font as tkf
 
-from utils import *
+from src.utils import *
 
 class MainPage(tk.Frame):
     def __init__(self, master, main_frame):

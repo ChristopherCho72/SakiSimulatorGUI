@@ -9,12 +9,12 @@ import re
 from tkinter import filedialog
 from PIL import ImageTk, Image
 
-from utils import *
-from main_page import MainPage
-from weapon_page import WeaponPage
-from spirit_page import SpiritPage
-from status_page import StatusPage
-from acce_page import AccePage
+from src.utils import *
+from src.main_page import MainPage
+from src.weapon_page import WeaponPage
+from src.spirit_page import SpiritPage
+from src.status_page import StatusPage
+from src.acce_page import AccePage
 
 class MainApp(tk.Tk):
     def __init__(self):
